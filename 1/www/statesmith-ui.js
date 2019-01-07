@@ -2,6 +2,21 @@ const SS_STATE_GROUP_STYLE_ID = "SS_STATE_GROUP_STYLE_ID";
 
 class StateSmithUI {
 
+    constructor(){
+        this.originalUpdateActionStatesFunc = EditorUi.prototype.updateActionStates;
+        EditorUi.prototype.updateActionStates = this.updateActionStates;
+    }
+
+    /**
+     * See EditorUi.prototype.updateActionStates.
+     * Remember that `this` is actually an object of `EditorUi`, not `StateSmithUI`
+     */
+    updateActionStates() {
+        ssui.originalUpdateActionStatesFunc.call(this);
+    	let graph = this.editor.graph;
+        this.actions.get('group').setEnabled(graph.getSelectionCount() >= 1);
+    }
+
     customizeStuff(graph, editor) {
         ssui.setDefaultGroupStyle(graph);
         graph.allowDanglingEdges = false;
