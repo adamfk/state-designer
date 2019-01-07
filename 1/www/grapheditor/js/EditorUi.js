@@ -939,7 +939,7 @@ EditorUi = function(editor, container, lightbox)
    	this.init();
 	this.open();
 	
-	ssui.customizeGroups(graph, editor);
+	ssui.customizeStuff(graph, editor);
 };
 
 // Extends mxEventSource

@@ -2,13 +2,19 @@ const SS_STATE_GROUP_STYLE_ID = "SS_STATE_GROUP_STYLE_ID";
 
 class StateSmithUI {
 
-    customizeGroups(graph, editor) {
+    customizeStuff(graph, editor) {
         ssui.setDefaultGroupStyle(graph);
+        graph.allowDanglingEdges = false;
+        graph.constrainChildren = true;     //prevent children from being outside of parent group
+        graph.extendParentsOnAdd = false;   //see issue #1
+
+        window._graph = graph;
+        window._editor = editor;
     }
 
     setDefaultGroupStyle(graph) {
         let style = new Object();
-        style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE;//mxConstants.SHAPE_SWIMLANE;
+        style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_SWIMLANE;
         style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RectanglePerimeter;
         style[mxConstants.STYLE_ALIGN] = mxConstants.ALIGN_CENTER;
         style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP;
