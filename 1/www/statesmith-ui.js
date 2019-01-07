@@ -3,9 +3,7 @@ const SS_STATE_GROUP_STYLE_ID = "SS_STATE_GROUP_STYLE_ID";
 class StateSmithUI {
 
     customizeGroups(graph, editor) {
-        this.setDefaultGroupStyle(graph);
-
-        editor.groupBorderSize = 20;
+        ssui.setDefaultGroupStyle(graph);
     }
 
     setDefaultGroupStyle(graph) {
@@ -25,25 +23,21 @@ class StateSmithUI {
         style[mxConstants.STYLE_FONTSTYLE] = 1;
         graph.getStylesheet().putCellStyle(SS_STATE_GROUP_STYLE_ID, style);
     }
-}
 
-
-const ssui = new StateSmithUI();
-
-(function(){
-	
-    /**
-     * TODOLOW create normal groups for 
-     */
-    Graph.prototype.createGroupCell = function()
+    groupCells(graph) 
     {
+        let groupBorderSize = 20;
+	    graph.groupCells(ssui.createGroup(), groupBorderSize);
+    }
+
+    createGroup() {
         var group = new mxCell('Group', new mxGeometry());
         group.setVertex(true);
         group.setConnectable(true);
         group.setStyle(SS_STATE_GROUP_STYLE_ID);
-        
         return group;
-    };
+    }
+}
 
 
-})();
+const ssui = new StateSmithUI();
