@@ -3,12 +3,79 @@ const SS_STATE_GROUP_STYLE_ID = "SS_STATE_GROUP_STYLE_ID";
 class StateSmithUI {
 
     constructor(){
+        this.groupBorderSize = 20;
+
         this.originalUpdateActionStatesFunc = EditorUi.prototype.updateActionStates;
         EditorUi.prototype.updateActionStates = this.updateActionStates;
+
+        this.groupsEntered = [];
+        var groupsEntered = this.groupsEntered;
+
+        //override enterGroup
+        {
+            let enterGroup = mxGraph.prototype.enterGroup;
+            mxGraph.prototype.enterGroup = function(cell) {
+                cell = cell || this.getSelectionCell();         //this code from mxGraph.prototype.enterGroup
+                if (this.isValidRoot(cell))                     //this code from mxGraph.prototype.enterGroup
+                {
+                    //remember `this` will be of type `mxGraph`
+                    enterGroup.apply(this, arguments);
+                    console.log(cell);
+                    groupsEntered.push(cell);
+                }
+            }
+        }
+
+        //override exitGroup
+        {
+            let exitGroup = mxGraph.prototype.exitGroup;
+            mxGraph.prototype.exitGroup = function() {
+                //remember `this` will be of type `mxGraph`
+                exitGroup.apply(this, arguments);
+                let group = groupsEntered.pop();
+
+                ssui.fitGroupToChildren(graph, group);
+            }
+        }
     }
 
     /**
-     * See EditorUi.prototype.updateActionStates.
+     * 
+     * @param mxGraph graph 
+     * @param mxCell group 
+     */
+    fitGroupToChildren(graph, group) {
+        if (group) {
+
+            //don't adjust size for collapsed groups
+            if (group.isCollapsed()) {
+                return;
+            }
+
+            console.log("exiting and resizing",  group);
+            if (graph.getModel().getChildCount(group) > 0)
+            {
+                var geo = graph.getCellGeometry(group);
+
+                if (geo != null)
+                {
+                    var children = graph.getChildCells(group, true, true);
+                    let toCheck = [group].concat(children)
+                    var bounds = graph.getBoundingBoxFromGeometry(toCheck, true);
+
+                    geo = geo.clone(); //needed for undo support
+                    geo.width = Math.max(geo.width, bounds.width);
+                    geo.height = Math.max(geo.height, bounds.height);
+
+                    graph.getModel().setGeometry(group, geo);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Overrides EditorUi.prototype.updateActionStates.
      * Remember that `this` is actually an object of `EditorUi`, not `StateSmithUI`
      */
     updateActionStates() {
@@ -47,8 +114,7 @@ class StateSmithUI {
 
     groupCells(graph) 
     {
-        let groupBorderSize = 20;
-	    graph.groupCells(ssui.createGroup(), groupBorderSize);
+	    graph.groupCells(ssui.createGroup(), this.groupBorderSize);
     }
 
     createGroup() {
