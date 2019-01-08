@@ -144,6 +144,8 @@ class StateSmithUI {
         graph.constrainChildren = true;     //prevent children from being outside of parent group
         graph.extendParentsOnAdd = false;   //see issue #1
 
+        graph.keepEdgesInForeground = true; //prevent edges from being behind vertices. see issue #5
+
         window._graph = graph;
         window._editor = editor;
     }
