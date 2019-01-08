@@ -164,6 +164,8 @@ class StateSmithUI {
      */
     customizeStuff(graph, editor) {
         ssui.setDefaultGroupStyle(graph);
+        ssui.setDefaultVertexStyle(graph);
+
         graph.allowDanglingEdges = false;
         graph.constrainChildren = true;     //prevent children from being outside of parent group
         graph.extendParentsOnAdd = false;   //see issue #1
@@ -174,6 +176,19 @@ class StateSmithUI {
         window._editor = editor;
     }
 
+    /**
+     * for issue #11
+     * @memberof StateSmithUI
+     */
+    setStyleVertexRounding(style) {
+        style[mxConstants.STYLE_ARCSIZE] = 10;        
+        style[mxConstants.STYLE_ABSOLUTE_ARCSIZE] = 1; //`1` means enabled.
+    }
+
+    /**
+     * @param {mxGraph} graph
+     * @memberof StateSmithUI
+     */
     setDefaultGroupStyle(graph) {
         let style = new Object();
         style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_SWIMLANE;
@@ -187,9 +202,24 @@ class StateSmithUI {
         style[mxConstants.STYLE_STARTSIZE] = '30';
         style[mxConstants.STYLE_FONTSIZE] = '16';
         style[mxConstants.STYLE_FONTSTYLE] = mxConstants.FONT_BOLD;
+        this.setStyleVertexRounding(style);
         graph.getStylesheet().putCellStyle(SS_STATE_GROUP_STYLE_ID, style);
     }
 
+    /**
+     * @param {mxGraph} graph
+     * @memberof StateSmithUI
+     */
+    setDefaultVertexStyle(graph) {
+        //TODOLOW this doesn't work. Need to define a custom shape in sidebar for states. See issue #12.
+        let style = graph.defaultVertexStyle;
+        this.setStyleVertexRounding(style);
+    }
+
+    /**
+     * @param {mxGraph} graph
+     * @memberof StateSmithUI
+     */
     groupCells(graph) 
     {
 	    graph.groupCells(ssui.createGroup(), this.groupBorderSize);
