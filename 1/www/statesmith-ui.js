@@ -108,15 +108,13 @@ class StateSmithUI {
         style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RectanglePerimeter;
         style[mxConstants.STYLE_ALIGN] = mxConstants.ALIGN_CENTER;
         style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP;
-        style[mxConstants.STYLE_FILLCOLOR] = '#FF9103';
-        style[mxConstants.STYLE_GRADIENTCOLOR] = '#F8C48B';
-        style[mxConstants.STYLE_STROKECOLOR] = '#E86A00';
+        style[mxConstants.STYLE_FILLCOLOR] = '#FCFCFC';
+        style[mxConstants.STYLE_STROKECOLOR] = '#000000';
         style[mxConstants.STYLE_FONTCOLOR] = '#000000';
         style[mxConstants.STYLE_ROUNDED] = true;
-        style[mxConstants.STYLE_OPACITY] = '80';
         style[mxConstants.STYLE_STARTSIZE] = '30';
         style[mxConstants.STYLE_FONTSIZE] = '16';
-        style[mxConstants.STYLE_FONTSTYLE] = 1;
+        style[mxConstants.STYLE_FONTSTYLE] = mxConstants.FONT_BOLD;
         graph.getStylesheet().putCellStyle(SS_STATE_GROUP_STYLE_ID, style);
     }
 
