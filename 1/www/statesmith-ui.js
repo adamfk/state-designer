@@ -8,6 +8,26 @@ class StateSmithUI {
         this.originalUpdateActionStatesFunc = EditorUi.prototype.updateActionStates;
         EditorUi.prototype.updateActionStates = this.updateActionStates;
 
+        //override mxGraph.prototype.getCellContainmentArea
+        {
+            let getCellContainmentArea = mxGraph.prototype.getCellContainmentArea;
+            mxGraph.prototype.getCellContainmentArea = function(cell) {
+                //remember that `this` is object of `mxGraph`
+                let rectangle = getCellContainmentArea.call(this, cell);
+
+                let parent = this.model.getParent(cell);
+
+                if (rectangle != null && this.model.getStyle(parent) === SS_STATE_GROUP_STYLE_ID) {    //TODOLOW refactor to function to check for ss state group
+                    rectangle.x += ssui.groupBorderSize;
+                    rectangle.y += ssui.groupBorderSize;
+                    rectangle.width  -= 2 * ssui.groupBorderSize;
+                    rectangle.height -= 2 * ssui.groupBorderSize;
+                }
+
+                return rectangle;
+            }
+        }
+
         //override exitGroup
         {
             let exitGroup = mxGraph.prototype.exitGroup;
@@ -36,20 +56,20 @@ class StateSmithUI {
                 return;
             }
 
-            console.log("exiting and resizing",  group);
             if (graph.getModel().getChildCount(group) > 0)
             {
-                var geo = graph.getCellGeometry(group);
+                let geo = graph.getCellGeometry(group);
 
                 if (geo != null)
                 {
-                    var children = graph.getChildCells(group, true, true);
+                    let children = graph.getChildCells(group, true, true);
                     let includeEdges = false;
-                    var paddedKidsBox = graph.getBoundingBoxFromGeometry(children, includeEdges); //TODOLOW include edges that are fully contained within group
+                    let paddedKidsBox = graph.getBoundingBoxFromGeometry(children, includeEdges); //TODOLOW include edges that are fully contained within group
                     paddedKidsBox.width += 2 * ssui.groupBorderSize;
                     paddedKidsBox.height += 2 * ssui.groupBorderSize;
+                    paddedKidsBox.height += graph.getStartSize(group).height; //get group's label height
 
-                    var unPaddedFullBox = graph.getBoundingBoxFromGeometry([group].concat(children), true);
+                    let unPaddedFullBox = graph.getBoundingBoxFromGeometry([group].concat(children), true);
 
                     geo = geo.clone(); //needed for undo support
                     geo.width = Math.max(paddedKidsBox.width, unPaddedFullBox.width);
