@@ -274,6 +274,8 @@ Actions.prototype.init = function()
 	this.addAction('toBack', function() { graph.orderCells(true); }, null, null, Editor.ctrlKey + '+Shift+B');
 	this.addAction('group', function()
 	{
+		ssui.groupCells(graph);
+		return;
 		if (graph.getSelectionCount() == 1)
 		{
 			graph.setCellStyles('container', '1');

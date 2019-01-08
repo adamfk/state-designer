@@ -937,7 +937,9 @@ EditorUi = function(editor, container, lightbox)
    	// Resets UI, updates action and menu states
    	this.editor.resetGraph();
    	this.init();
-   	this.open();
+	this.open();
+	
+	ssui.customizeStuff(graph, editor);
 };
 
 // Extends mxEventSource
