@@ -1,5 +1,6 @@
 const SS_STATE_GROUP_STYLE_ID = "SS_STATE_GROUP_STYLE_ID";
 
+
 class StateSmithUI {
 
     constructor(){
@@ -7,6 +8,40 @@ class StateSmithUI {
 
         this.originalUpdateActionStatesFunc = EditorUi.prototype.updateActionStates;
         EditorUi.prototype.updateActionStates = this.updateActionStates;
+
+        //override Graph.prototype.dblClick to support entering group on body double click issue #4
+        {
+            let dblClick = Graph.prototype.dblClick;
+            Graph.prototype.dblClick = function(event, cell) {
+                //remember `this` is of type `Graph`
+                let done = false;
+                let pt = mxUtils.convertPoint(this.container, mxEvent.getClientX(event), mxEvent.getClientY(event));
+
+                cell = cell || this.getCellAt(pt.x, pt.y)
+
+                if (ssui.isCompositeState(this, cell)) {
+                    //TODOLOW look at supporting event listeners and pre-consuming events
+					let state = this.view.getState(cell);
+
+                    //TODO consider why `Graph.prototype.dblClick` had below
+                    // let src = mxEvent.getSource(event);
+                    // if (this.firstClickState == state && this.firstClickSource == src)
+					// {
+						if (state == null || state.text == null || state.text.node == null ||
+							!mxUtils.contains(state.text.boundingBox, pt.x, pt.y))
+						{
+                            this.enterGroup(cell);
+                            done = true;
+                        }
+                    // }
+                } 
+                
+                if (!done) {
+                    dblClick.call(this, event, cell);
+                }
+            };
+        }
+
 
         //override mxGraph.prototype.getCellContainmentArea
         {
@@ -17,7 +52,7 @@ class StateSmithUI {
 
                 let parent = this.model.getParent(cell);
 
-                if (rectangle != null && this.model.getStyle(parent) === SS_STATE_GROUP_STYLE_ID) {    //TODOLOW refactor to function to check for ss state group
+                if (rectangle != null && ssui.isCompositeState(this, parent)) {
                     rectangle.x += ssui.groupBorderSize;
                     rectangle.y += ssui.groupBorderSize;
                     rectangle.width  -= 2 * ssui.groupBorderSize;
@@ -41,6 +76,17 @@ class StateSmithUI {
                 }
             }
         }
+    }
+
+    /**
+     * 
+     * @param mxCell cell 
+     */
+    isCompositeState(graph, cell) {
+        if (!graph || !graph.model) {
+            return false;
+        }
+        return graph.model.getStyle(cell) === SS_STATE_GROUP_STYLE_ID;
     }
 
     /**
