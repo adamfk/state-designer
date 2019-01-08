@@ -8,43 +8,27 @@ class StateSmithUI {
         this.originalUpdateActionStatesFunc = EditorUi.prototype.updateActionStates;
         EditorUi.prototype.updateActionStates = this.updateActionStates;
 
-        this.groupsEntered = [];
-        var groupsEntered = this.groupsEntered;
-
-        //override enterGroup
-        {
-            let enterGroup = mxGraph.prototype.enterGroup;
-            mxGraph.prototype.enterGroup = function(cell) {
-                cell = cell || this.getSelectionCell();         //this code from mxGraph.prototype.enterGroup
-                if (this.isValidRoot(cell))                     //this code from mxGraph.prototype.enterGroup
-                {
-                    //remember `this` will be of type `mxGraph`
-                    enterGroup.apply(this, arguments);
-                    console.log(cell);
-                    groupsEntered.push(cell);
-                }
-            }
-        }
-
         //override exitGroup
         {
             let exitGroup = mxGraph.prototype.exitGroup;
             mxGraph.prototype.exitGroup = function() {
-                //remember `this` will be of type `mxGraph`
-                exitGroup.apply(this, arguments);
-                let group = groupsEntered.pop();
-
-                ssui.fitGroupToChildren(graph, group);
+                let group = this.getCurrentRoot();
+                if (this.isValidRoot(group))
+                {
+                    //remember `this` will be of type `mxGraph`
+                    exitGroup.apply(this, arguments);
+                    ssui.fitExpandedGroupToChildren(this, group);
+                }
             }
         }
     }
 
     /**
-     * 
+     * Will ignore collapsed groups
      * @param mxGraph graph 
      * @param mxCell group 
      */
-    fitGroupToChildren(graph, group) {
+    fitExpandedGroupToChildren(graph, group) {
         if (group) {
 
             //don't adjust size for collapsed groups
@@ -60,12 +44,16 @@ class StateSmithUI {
                 if (geo != null)
                 {
                     var children = graph.getChildCells(group, true, true);
-                    let toCheck = [group].concat(children)
-                    var bounds = graph.getBoundingBoxFromGeometry(toCheck, true);
+                    let includeEdges = false;
+                    var paddedKidsBox = graph.getBoundingBoxFromGeometry(children, includeEdges); //TODOLOW include edges that are fully contained within group
+                    paddedKidsBox.width += 2 * ssui.groupBorderSize;
+                    paddedKidsBox.height += 2 * ssui.groupBorderSize;
+
+                    var unPaddedFullBox = graph.getBoundingBoxFromGeometry([group].concat(children), true);
 
                     geo = geo.clone(); //needed for undo support
-                    geo.width = Math.max(geo.width, bounds.width);
-                    geo.height = Math.max(geo.height, bounds.height);
+                    geo.width = Math.max(paddedKidsBox.width, unPaddedFullBox.width);
+                    geo.height = Math.max(paddedKidsBox.height, unPaddedFullBox.height);
 
                     graph.getModel().setGeometry(group, geo);
                 }
