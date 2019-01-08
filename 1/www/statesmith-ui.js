@@ -80,7 +80,7 @@ class StateSmithUI {
 
     /**
      * 
-     * @param mxCell cell 
+     * @param {mxCell} cell 
      */
     isCompositeState(graph, cell) {
         if (!graph || !graph.model) {
@@ -91,8 +91,8 @@ class StateSmithUI {
 
     /**
      * Will ignore collapsed groups
-     * @param mxGraph graph 
-     * @param mxCell group 
+     * @param {mxGraph} graph 
+     * @param {mxCell} group 
      */
     fitExpandedGroupToChildren(graph, group) {
         if (group) {
@@ -138,6 +138,12 @@ class StateSmithUI {
         this.actions.get('group').setEnabled(graph.getSelectionCount() >= 1);
     }
 
+    /**
+     *
+     * @param {mxGraph} graph. Actually of type {Graph}, but vscode doesn't detect that type. {Graph} extends {mxGraph}.
+     * @param {EditorUi} editor
+     * @memberof StateSmithUI
+     */
     customizeStuff(graph, editor) {
         ssui.setDefaultGroupStyle(graph);
         graph.allowDanglingEdges = false;
