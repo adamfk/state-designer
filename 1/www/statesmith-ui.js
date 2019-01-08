@@ -6,8 +6,17 @@ class StateSmithUI {
     constructor(){
         this.groupBorderSize = 20;
 
-        this.originalUpdateActionStatesFunc = EditorUi.prototype.updateActionStates;
+        this.originalUpdateActionStatesFunc = EditorUi.prototype.updateActionStates;    //TODOLOW rework to same format as other extensions
         EditorUi.prototype.updateActionStates = this.updateActionStates;
+
+        //extend Toolbar to add our buttons
+        {
+            let toolbarInit = Toolbar.prototype.init;
+            Toolbar.prototype.init = function() {
+                toolbarInit.apply(this, arguments);
+                ssui.addExitGroupToToolbar(this);
+            }
+        }
 
         //override Graph.prototype.dblClick to support entering group on body double click issue #4
         {
@@ -127,6 +136,15 @@ class StateSmithUI {
         }
     }
 
+    /**
+     * 
+     * @param {Toolbar} toolbar 
+     */
+    addExitGroupToToolbar(toolbar) {
+        toolbar.addSeparator();
+        let elts = toolbar.addItems(['exitGroup']);
+        elts[0].setAttribute('title', mxResources.get('exitGroup') + ' (' + toolbar.editorUi.actions.get('exitGroup').shortcut + ')');
+    }
 
     /**
      * Overrides EditorUi.prototype.updateActionStates.
