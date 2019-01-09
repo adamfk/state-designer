@@ -1,4 +1,6 @@
-const SS_STATE_GROUP_STYLE_ID = "SS_STATE_GROUP_STYLE_ID";
+const SS_COMPOSITE_STATE_GROUP_STYLE_ID = "SS_COMPOSITE_STATE_GROUP_STYLE_ID";
+const SS_SIMPLE_STATE_STYLE_ID = "SS_SIMPLE_STATE_STYLE_ID";
+const SS_EVENT_HANDLERS_TEXT_STYLE_ID = "SS_EVENT_HANDLERS_TEXT_STYLE_ID";
 
 
 class StateSmithUI {
@@ -8,6 +10,13 @@ class StateSmithUI {
 
         this.originalUpdateActionStatesFunc = EditorUi.prototype.updateActionStates;    //TODOLOW rework to same format as other extensions
         EditorUi.prototype.updateActionStates = this.updateActionStates;
+
+        //completely override `Sidebar.prototype.init`
+        {
+            Sidebar.prototype.init = function() {
+                ssui.addStateShapesPaletteToSidebar(this);
+            }
+        }
 
         //extend Toolbar to add our buttons
         {
@@ -28,7 +37,7 @@ class StateSmithUI {
 
                 cell = cell || this.getCellAt(pt.x, pt.y)
 
-                if (ssui.isCompositeState(this, cell)) {
+                if (ssui.isCompositeState(cell)) {
                     //TODOLOW look at supporting event listeners and pre-consuming events
 					let state = this.view.getState(cell);
 
@@ -59,9 +68,21 @@ class StateSmithUI {
                 //remember that `this` is object of `mxGraph`
                 let rectangle = getCellContainmentArea.call(this, cell);
 
+                if (rectangle == null) {
+                    return null;
+                }
+
                 let parent = this.model.getParent(cell);
 
-                if (rectangle != null && ssui.isCompositeState(this, parent)) {
+                if (ssui.isEventHandlerText(cell)) {
+                    //fixes issue #18
+                    let smallPadding = 2;
+                    rectangle.x += smallPadding;
+                    rectangle.y += smallPadding;
+                    rectangle.width  -= 2 * smallPadding;
+                    rectangle.height -= 2 * smallPadding;
+                } 
+                else if (ssui.isCompositeState(parent)) {
                     rectangle.x += ssui.groupBorderSize;
                     rectangle.y += ssui.groupBorderSize;
                     rectangle.width  -= 2 * ssui.groupBorderSize;
@@ -88,14 +109,48 @@ class StateSmithUI {
     }
 
     /**
+     *
+     * @param {mxCell} cell
+     * @param {string} targetStyleName
+     * @returns {boolean}
+     * @memberof StateSmithUI
+     */
+    hasStyle(cell, targetStyleName) {
+        if (cell == undefined) {
+            return false;
+        }
+
+        /** @type {string} */    
+        let style = cell.getStyle();
+
+        let index = style.indexOf(targetStyleName);
+
+        if (index < 0){
+            return false;
+        }
+
+        //it has the passed style if next char after is ';' or end of string
+        if (style.length == targetStyleName.length || style.charAt(targetStyleName.length) == ';') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * 
      * @param {mxCell} cell 
      */
-    isCompositeState(graph, cell) {
-        if (!graph || !graph.model) {
-            return false;
-        }
-        return graph.model.getStyle(cell) === SS_STATE_GROUP_STYLE_ID;
+    isEventHandlerText(cell) {
+        return ssui.hasStyle(cell, SS_EVENT_HANDLERS_TEXT_STYLE_ID);
+    }
+
+    /**
+     * 
+     * @param {mxCell} cell 
+     */
+    isCompositeState(cell) {
+        return ssui.hasStyle(cell, SS_COMPOSITE_STATE_GROUP_STYLE_ID);
     }
 
     /**
@@ -163,9 +218,6 @@ class StateSmithUI {
      * @memberof StateSmithUI
      */
     customizeStuff(graph, editor) {
-        ssui.setDefaultGroupStyle(graph);
-        ssui.setDefaultVertexStyle(graph);
-
         graph.allowDanglingEdges = false;
         graph.constrainChildren = true;     //prevent children from being outside of parent group
         graph.extendParentsOnAdd = false;   //see issue #1
@@ -181,6 +233,7 @@ class StateSmithUI {
      * @memberof StateSmithUI
      */
     setStyleVertexRounding(style) {
+        style[mxConstants.STYLE_ROUNDED] = true;
         style[mxConstants.STYLE_ARCSIZE] = 10;        
         style[mxConstants.STYLE_ABSOLUTE_ARCSIZE] = 1; //`1` means enabled.
     }
@@ -198,22 +251,85 @@ class StateSmithUI {
         style[mxConstants.STYLE_FILLCOLOR] = '#FCFCFC';
         style[mxConstants.STYLE_STROKECOLOR] = '#000000';
         style[mxConstants.STYLE_FONTCOLOR] = '#000000';
-        style[mxConstants.STYLE_ROUNDED] = true;
         style[mxConstants.STYLE_STARTSIZE] = '30';
         style[mxConstants.STYLE_FONTSIZE] = '16';
         style[mxConstants.STYLE_FONTSTYLE] = mxConstants.FONT_BOLD;
         this.setStyleVertexRounding(style);
-        graph.getStylesheet().putCellStyle(SS_STATE_GROUP_STYLE_ID, style);
+        graph.getStylesheet().putCellStyle(SS_COMPOSITE_STATE_GROUP_STYLE_ID, style);
     }
 
     /**
      * @param {mxGraph} graph
      * @memberof StateSmithUI
      */
-    setDefaultVertexStyle(graph) {
-        //TODOLOW this doesn't work. Need to define a custom shape in sidebar for states. See issue #12.
-        let style = graph.defaultVertexStyle;
+    setSimpleStateStyle(graph) {
+        let style = mxUtils.clone(graph.getStylesheet().getDefaultVertexStyle());
         this.setStyleVertexRounding(style);
+        graph.getStylesheet().putCellStyle(SS_SIMPLE_STATE_STYLE_ID, style);
+    }
+
+    /**
+     * @param {mxStylesheet} styleSheet
+     * @memberof StateSmithUI
+     */
+    setEventHandlerTextStyle(styleSheet) {
+        //don't try `styleSheet.getCellStyle("text;strokeColor=none;fillColor=none;rounded=0;");` as it will delete strokeColor, fillColor instead of setting to NONE.
+        let style = { };
+        style[mxConstants.STYLE_ALIGN] = mxConstants.ALIGN_LEFT;
+        style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP;
+        style[mxConstants.STYLE_FILLCOLOR] = mxConstants.NONE;
+        style[mxConstants.STYLE_GRADIENTCOLOR] = mxConstants.NONE;
+        style[mxConstants.STYLE_STROKECOLOR] = mxConstants.NONE;
+        style[mxConstants.STYLE_ROUNDED] = 0;
+        styleSheet.putCellStyle(SS_EVENT_HANDLERS_TEXT_STYLE_ID, style);
+    }
+
+    /**
+     * 
+     * @param {Sidebar} sidebar 
+     */
+    addStateShapesPaletteToSidebar(sidebar) {
+        sidebar.addSearchPalette(true);
+
+        ssui.setSimpleStateStyle(sidebar.graph);
+        ssui.setDefaultGroupStyle(sidebar.graph);
+        ssui.setEventHandlerTextStyle(sidebar.graph.getStylesheet());
+
+        const enterDoExitCode = "enter / {  }\ndo / {  }\nexit / {  }";
+
+        let fns = [
+            //TODO make style for intial state. Issue #16.
+            sidebar.createVertexTemplateEntry('ellipse;aspect=fixed;fillColor=#000000;editable=0;resizable=0;', 25, 25, '', 'Initial State', null, null, 'initial pseudo state'),
+            sidebar.createVertexTemplateEntry(SS_SIMPLE_STATE_STYLE_ID, 120, 50, "STATE", 'Empty Simple State', null, null, 'simple state'),
+            sidebar.createVertexTemplateEntry(SS_SIMPLE_STATE_STYLE_ID, 160, 70, "STATE\n" + enterDoExitCode, 'Simple State (enter,do,exit)', null, null, 'simple state enter,do,exit'),
+            sidebar.createVertexTemplateEntry(SS_COMPOSITE_STATE_GROUP_STYLE_ID, 250, 150, "STATE", 'Composite State', null, null, 'composite nested nesting complex state'),
+            sidebar.createVertexTemplateEntry(SS_EVENT_HANDLERS_TEXT_STYLE_ID, 190, 60,   
+                enterDoExitCode, 'Event Handlers en,do,exit', null, null, 'event action handler'),
+
+            sidebar.addEntry('composite state enter,do,exit', function()
+            {
+                let cell = new mxCell('STATE', new mxGeometry(0, 0, 250, 150));
+                cell.setVertex(true);
+                cell.setConnectable(true);
+                cell.setStyle(SS_COMPOSITE_STATE_GROUP_STYLE_ID);
+
+                let innerHandlers = new mxCell(enterDoExitCode, new mxGeometry(5, 30, 190, 60));
+                innerHandlers.setVertex(true);
+                innerHandlers.setConnectable(false);
+                innerHandlers.setStyle(SS_EVENT_HANDLERS_TEXT_STYLE_ID); //TODOLOW code re-use for above
+                
+                cell.insert(innerHandlers);
+
+                return sidebar.createVertexTemplateFromCells([cell], cell.geometry.width, cell.geometry.height, 'Composite State (enter,do,exit)');
+            }),                
+        ];
+        
+        {
+            let expanded = true;
+            let id = "State Objects";
+            let title = id;
+            sidebar.addPaletteFunctions(id, title, expanded, fns);
+        }
     }
 
     /**
@@ -229,7 +345,7 @@ class StateSmithUI {
         var group = new mxCell('Group', new mxGeometry());
         group.setVertex(true);
         group.setConnectable(true);
-        group.setStyle(SS_STATE_GROUP_STYLE_ID);
+        group.setStyle(SS_COMPOSITE_STATE_GROUP_STYLE_ID);
         return group;
     }
 }
