@@ -37,7 +37,7 @@ class StateSmithUI {
 
                 cell = cell || this.getCellAt(pt.x, pt.y)
 
-                if (ssui.isCompositeState(this, cell)) {
+                if (ssui.isCompositeState(cell)) {
                     //TODOLOW look at supporting event listeners and pre-consuming events
 					let state = this.view.getState(cell);
 
@@ -68,9 +68,21 @@ class StateSmithUI {
                 //remember that `this` is object of `mxGraph`
                 let rectangle = getCellContainmentArea.call(this, cell);
 
+                if (rectangle == null) {
+                    return null;
+                }
+
                 let parent = this.model.getParent(cell);
 
-                if (rectangle != null && ssui.isCompositeState(this, parent)) {
+                if (ssui.isEventHandlerText(cell)) {
+                    //fixes issue #18
+                    let smallPadding = 2;
+                    rectangle.x += smallPadding;
+                    rectangle.y += smallPadding;
+                    rectangle.width  -= 2 * smallPadding;
+                    rectangle.height -= 2 * smallPadding;
+                } 
+                else if (ssui.isCompositeState(parent)) {
                     rectangle.x += ssui.groupBorderSize;
                     rectangle.y += ssui.groupBorderSize;
                     rectangle.width  -= 2 * ssui.groupBorderSize;
@@ -104,6 +116,10 @@ class StateSmithUI {
      * @memberof StateSmithUI
      */
     hasStyle(cell, targetStyleName) {
+        if (cell == undefined) {
+            return false;
+        }
+
         /** @type {string} */    
         let style = cell.getStyle();
 
@@ -125,10 +141,7 @@ class StateSmithUI {
      * 
      * @param {mxCell} cell 
      */
-    isEventHandlerText(graph, cell) {
-        if (!graph || !graph.model) {
-            return false;
-        }
+    isEventHandlerText(cell) {
         return ssui.hasStyle(cell, SS_EVENT_HANDLERS_TEXT_STYLE_ID);
     }
 
@@ -136,10 +149,7 @@ class StateSmithUI {
      * 
      * @param {mxCell} cell 
      */
-    isCompositeState(graph, cell) {
-        if (!graph || !graph.model) {
-            return false;
-        }
+    isCompositeState(cell) {
         return ssui.hasStyle(cell, SS_COMPOSITE_STATE_GROUP_STYLE_ID);
     }
 
@@ -293,13 +303,8 @@ class StateSmithUI {
             sidebar.createVertexTemplateEntry(SS_SIMPLE_STATE_STYLE_ID, 120, 50, "STATE", 'Empty Simple State', null, null, 'simple state'),
             sidebar.createVertexTemplateEntry(SS_SIMPLE_STATE_STYLE_ID, 160, 70, "STATE\n" + enterDoExitCode, 'Simple State (enter,do,exit)', null, null, 'simple state enter,do,exit'),
             sidebar.createVertexTemplateEntry(SS_COMPOSITE_STATE_GROUP_STYLE_ID, 250, 150, "STATE", 'Composite State', null, null, 'composite nested nesting complex state'),
-            
-            //TODO make a style for identification. Issue #16.
             sidebar.createVertexTemplateEntry(SS_EVENT_HANDLERS_TEXT_STYLE_ID, 190, 60,   
                 enterDoExitCode, 'Event Handlers en,do,exit', null, null, 'event action handler'),
-
-
-            //TODO allow event handler text to omit parent border padding
 
             sidebar.addEntry('composite state enter,do,exit', function()
             {
