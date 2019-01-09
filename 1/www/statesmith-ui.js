@@ -97,6 +97,42 @@ class StateSmithUI {
     }
 
     /**
+     *
+     * @param {mxCell} cell
+     * @param {string} targetStyleName
+     * @returns {boolean}
+     * @memberof StateSmithUI
+     */
+    hasStyle(cell, targetStyleName) {
+        /** @type {string} */    
+        let style = cell.getStyle();
+
+        let index = style.indexOf(targetStyleName);
+
+        if (index < 0){
+            return false;
+        }
+
+        //it has the passed style if next char after is ';' or end of string
+        if (style.length == targetStyleName.length || style.charAt(targetStyleName.length) == ';') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 
+     * @param {mxCell} cell 
+     */
+    isEventHandlerText(graph, cell) {
+        if (!graph || !graph.model) {
+            return false;
+        }
+        return ssui.hasStyle(cell, SS_EVENT_HANDLERS_TEXT_STYLE_ID);
+    }
+
+    /**
      * 
      * @param {mxCell} cell 
      */
@@ -104,7 +140,7 @@ class StateSmithUI {
         if (!graph || !graph.model) {
             return false;
         }
-        return graph.model.getStyle(cell) === SS_COMPOSITE_STATE_GROUP_STYLE_ID;
+        return ssui.hasStyle(cell, SS_COMPOSITE_STATE_GROUP_STYLE_ID);
     }
 
     /**
