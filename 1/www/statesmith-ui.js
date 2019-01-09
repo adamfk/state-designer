@@ -1,5 +1,6 @@
 const SS_COMPOSITE_STATE_GROUP_STYLE_ID = "SS_COMPOSITE_STATE_GROUP_STYLE_ID";
 const SS_SIMPLE_STATE_STYLE_ID = "SS_SIMPLE_STATE_STYLE_ID";
+const SS_EVENT_HANDLERS_TEXT_STYLE_ID = "SS_EVENT_HANDLERS_TEXT_STYLE_ID";
 
 
 class StateSmithUI {
@@ -222,6 +223,22 @@ class StateSmithUI {
     }
 
     /**
+     * @param {mxStylesheet} styleSheet
+     * @memberof StateSmithUI
+     */
+    setEventHandlerTextStyle(styleSheet) {
+        //don't try `styleSheet.getCellStyle("text;strokeColor=none;fillColor=none;rounded=0;");` as it will delete strokeColor, fillColor instead of setting to NONE.
+        let style = { };
+        style[mxConstants.STYLE_ALIGN] = mxConstants.ALIGN_LEFT;
+        style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP;
+        style[mxConstants.STYLE_FILLCOLOR] = mxConstants.NONE;
+        style[mxConstants.STYLE_GRADIENTCOLOR] = mxConstants.NONE;
+        style[mxConstants.STYLE_STROKECOLOR] = mxConstants.NONE;
+        style[mxConstants.STYLE_ROUNDED] = 0;
+        styleSheet.putCellStyle(SS_EVENT_HANDLERS_TEXT_STYLE_ID, style);
+    }
+
+    /**
      * 
      * @param {Sidebar} sidebar 
      */
@@ -230,6 +247,7 @@ class StateSmithUI {
 
         ssui.setSimpleStateStyle(sidebar.graph);
         ssui.setDefaultGroupStyle(sidebar.graph);
+        ssui.setEventHandlerTextStyle(sidebar.graph.getStylesheet());
 
         const enterDoExitCode = "enter / {  }\ndo / {  }\nexit / {  }";
 
@@ -241,10 +259,9 @@ class StateSmithUI {
             sidebar.createVertexTemplateEntry(SS_COMPOSITE_STATE_GROUP_STYLE_ID, 250, 150, "STATE", 'Composite State', null, null, 'composite nested nesting complex state'),
             
             //TODO make a style for identification. Issue #16.
-            sidebar.createVertexTemplateEntry('text;strokeColor=none;fillColor=none;rounded=0;', 190, 60,   
+            sidebar.createVertexTemplateEntry(SS_EVENT_HANDLERS_TEXT_STYLE_ID, 190, 60,   
                 enterDoExitCode, 'Event Handlers en,do,exit', null, null, 'event action handler'),
 
-            //TODO fix check for composite state to search for style, but not full match.
 
             //TODO allow event handler text to omit parent border padding
 
@@ -258,7 +275,7 @@ class StateSmithUI {
                 let innerHandlers = new mxCell(enterDoExitCode, new mxGeometry(5, 30, 190, 60));
                 innerHandlers.setVertex(true);
                 innerHandlers.setConnectable(false);
-                innerHandlers.setStyle('text;strokeColor=none;fillColor=none;rounded=0;'); //TODOLOW code re-use for above
+                innerHandlers.setStyle(SS_EVENT_HANDLERS_TEXT_STYLE_ID); //TODOLOW code re-use for above
                 
                 cell.insert(innerHandlers);
 
