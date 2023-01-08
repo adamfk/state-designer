@@ -397,10 +397,12 @@ class StateSmithUIStyles {
         style[mxConstants.STYLE_STARTSIZE] = '30';
         style[mxConstants.STYLE_FONTSIZE] = '14';
         style[mxConstants.STYLE_FONTSTYLE] = mxConstants.FONT_BOLD;
+        style[mxConstants.STYLE_FONTCOLOR] = "#FAFAFA";
+        
+        style[mxConstants.STYLE_FILLCOLOR] = "#545454";
         style[mxConstants.STYLE_SWIMLANE_FILLCOLOR] = "default";
-        // swimlaneFillColor
-        style["html"] = 1; // enables formatted text
-        // style[mxConstants.STYLE_SPACING_LEFT] = '12';
+
+        // style["html"] = 1; // enables formatted text
 
         this.addVertexRoundingStyle();
         return this;
@@ -409,6 +411,7 @@ class StateSmithUIStyles {
     addSimpleStateStyle() {
         let style = this.addVertexRoundingStyle().addRegularTextStyle();
         style["html"] = 1; // enables formatted text
+        style[mxConstants.STYLE_SPACING_LEFT] = 4;
         return this;
     }
 
