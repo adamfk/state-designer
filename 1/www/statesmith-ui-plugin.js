@@ -101,7 +101,7 @@ class StateSmithUI2 {
             return;
 
         let children = graph.getChildCells(group, true, true);
-        let includeEdges = false;
+        let includeEdges = false; // when true, I think we hit a draw.io bug `graph.getBoundingBoxFromGeometry()`. Needs more testing and ticket to be opened.
         let kidsBoundingBox = graph.getBoundingBoxFromGeometry(children, includeEdges); // todo low - include edges that are fully contained within group
 
         const groupBorderSize = 20;
@@ -109,7 +109,7 @@ class StateSmithUI2 {
         let requiredHeight = kidsBoundingBox.y + kidsBoundingBox.height + groupBorderSize;
 
         geo = geo.clone(); // needed for undo support
-        let parentBoundingBox = graph.getBoundingBoxFromGeometry([group].concat(children), true);
+        let parentBoundingBox = graph.getBoundingBoxFromGeometry([group].concat(children), includeEdges);
         geo.width = Math.max(parentBoundingBox.width, requiredWidth);
         geo.height = Math.max(parentBoundingBox.height, requiredHeight);
 
