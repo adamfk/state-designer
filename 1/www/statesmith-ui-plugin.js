@@ -5,21 +5,6 @@ class StateSmithUI2 {
     viewStack = [];
 
     /**
-     * @param {mxGraph} graph
-     */
-    addCustomGroupingBehavior(graph) {
-        var originalGroupCells = graph.groupCells;
-    }
-
-    createGroup() {
-        var group = new mxCell('Group', new mxGeometry());
-        group.setVertex(true);
-        group.setConnectable(true);
-        group.setStyle(SS_COMPOSITE_STATE_GROUP_STYLE_ID);
-        return group;
-    }
-
-    /**
      * @param {mxGraph} graph 
      */
     addCustomExitGroupHandlerForFittingGroupToKids(graph) {
@@ -151,6 +136,22 @@ class StateSmithUI2 {
     }
 
     /**
+     * @param {mxGraph} graph
+     */
+    addCustomGroupingBehavior(graph) {
+        // todo - finish
+        var originalGroupCells = graph.groupCells;
+    }
+
+    createGroup() {
+        var group = new mxCell('Group', new mxGeometry());
+        group.setVertex(true);
+        group.setConnectable(true);
+        // group.setStyle(); // todo - finish
+        return group;
+    }
+
+    /**
      * 
      * @param {Sidebar} sidebar 
      */
@@ -216,13 +217,13 @@ class StateSmithUI2 {
 
         let handlers = this.makeEventHandlersCell();
         cell.insert(handlers);
-        
+
         if (skipHandlers) {
             handlers.value = " ";
             handlers.geometry.width = 30;
             handlers.geometry.height = 20;
         }
-        
+
         return cell;
     }
 
@@ -302,16 +303,14 @@ class StateSmithUIStyles {
         return this;
     }
 
-    addEntryPointStyle()
-    {
+    addEntryPointStyle() {
         let style = this.addExitPointStyle();
         style[mxConstants.STYLE_STROKECOLOR] = "#27ae27";
 
         return this;
     }
 
-    addHistoryVertexStyle()
-    {
+    addHistoryVertexStyle() {
         let style = this;
         this.addRegularTextStyle();
         style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_ELLIPSE;
@@ -331,7 +330,7 @@ class StateSmithUIStyles {
         style[mxConstants.STYLE_FILLCOLOR] = "#ffcd28";
         style[mxConstants.STYLE_GRADIENTCOLOR] = "#ffa500";
         style[mxConstants.STYLE_GRADIENT_DIRECTION] = mxConstants.DIRECTION_NORTH;
-        
+
         style["html"] = 1; // enables formatted text
         style[mxConstants.STYLE_FONTCOLOR] = "#000000";
         style[mxConstants.STYLE_FONTFAMILY] = "Helvetica";
@@ -484,8 +483,7 @@ Draw.loadPlugin(function (ui) {
     ssui.addCustomGroupingBehavior(graph);
 });
 
-if (false)
-{
+if (false) {
     // useful for getting access to graph
     Draw.loadPlugin(function (ui) {
         window.my_graph = ui.editor.graph;
